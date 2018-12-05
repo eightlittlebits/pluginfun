@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pluginfun", "pluginfun\pluginfun.csproj", "{06EB1B22-A8C4-46AB-8147-DD5CF09F4ADD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pluginfun.shared", "pluginfun.shared\pluginfun.shared.csproj", "{D557FD41-DF1E-46A7-8001-19AEC37AF044}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06EB1B22-A8C4-46AB-8147-DD5CF09F4ADD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06EB1B22-A8C4-46AB-8147-DD5CF09F4ADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06EB1B22-A8C4-46AB-8147-DD5CF09F4ADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06EB1B22-A8C4-46AB-8147-DD5CF09F4ADD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D557FD41-DF1E-46A7-8001-19AEC37AF044}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D557FD41-DF1E-46A7-8001-19AEC37AF044}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D557FD41-DF1E-46A7-8001-19AEC37AF044}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D557FD41-DF1E-46A7-8001-19AEC37AF044}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {664054C9-511B-4358-9AEE-E7878BA08719}
+	EndGlobalSection
+EndGlobal
