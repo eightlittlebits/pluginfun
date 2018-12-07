@@ -43,6 +43,7 @@
             this.limitFpsToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
             this.pauseOnLostFocusToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -52,6 +53,7 @@
             this.fileToolStripMenuItem,
             this.emulationToolStripMenuItem,
             this.optionsToolStripMenuItem,
+            this.pluginsToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
@@ -163,6 +165,12 @@
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "&Help";
             // 
+            // pluginsToolStripMenuItem
+            // 
+            this.pluginsToolStripMenuItem.Name = "pluginsToolStripMenuItem";
+            this.pluginsToolStripMenuItem.Size = new System.Drawing.Size(58, 20);
+            this.pluginsToolStripMenuItem.Text = "&Plugins";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -196,6 +204,7 @@
         private elb_utilities.Components.BindableToolStripMenuItem resetToolStripMenuItem;
         private elb_utilities.Components.BindableToolStripMenuItem pauseOnLostFocusToolStripMenuItem;
         private elb_utilities.Components.BindableToolStripMenuItem limitFpsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pluginsToolStripMenuItem;
     }
 }
 

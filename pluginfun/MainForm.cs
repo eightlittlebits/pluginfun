@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
+using elb_utilities.Components;
+using pluginfun.shared;
 
 namespace pluginfun
 {
@@ -30,11 +34,39 @@ namespace pluginfun
             PrepareDataBindings();
         }
 
+        private IEnumerable<Type> GetImplementationsFromAssembly<T>()
+        {
+            Type type = typeof(T);
+
+            if (!type.IsInterface) throw new Exception($"{nameof(GetImplementationsFromAssembly)} called with non-interface type {type.Name}");
+
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => type.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+        }
+
         private void PrepareUserInterface()
         {
             SetUIText();
-
             UpdateRecentFilesMenu();
+
+            // load plugin assemblies
+            foreach (var file in Directory.GetFiles("plugins", "*.dll"))
+            {
+                Assembly.LoadFrom(file);
+            }
+
+            // populate plugins menu
+            foreach (var pluginType in GetImplementationsFromAssembly<IPlugin>())
+            {
+                var plugin = (IPlugin)Activator.CreateInstance(pluginType);
+
+                var pluginMenuItem = new BindableToolStripMenuItem() { Text = plugin.Name };
+                pluginMenuItem.Click += (s, ev) =>
+                {
+                    plugin.DoTheThing();
+                };
+
+                pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+            }
         }
 
         private void SetUIText()

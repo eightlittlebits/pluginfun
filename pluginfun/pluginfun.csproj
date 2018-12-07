@@ -48,6 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InternalPluginOne.cs" />
+    <Compile Include="InternalPluginTwo.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -92,6 +94,12 @@
       <Project>{d557fd41-df1e-46a7-8001-19aec37af044}</Project>
       <Name>pluginfun.shared</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\ExternalPluginOne\bin\Debug\ExternalPluginOne.dll">
+      <Link>plugins\ExternalPluginOne.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
