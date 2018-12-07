@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -8,21 +9,37 @@ namespace pluginfun
     {
         const int RecentFileCount = 10;
 
+        string _programNameVersion;
         PluginfunConfig _config;
+
+        NotifyValue<bool> _emulationInitialised;
+        NotifyValue<bool> _emulationPaused;
 
         public MainForm()
         {
             InitializeComponent();
 
+            _programNameVersion = $"{Application.ProductName} {Application.ProductVersion}";
+
             _config = PluginfunConfig.Load();
 
+            _emulationInitialised = new NotifyValue<bool>(false);
+            _emulationPaused = new NotifyValue<bool>(false);
+
             PrepareUserInterface();
-            //PrepareDataBindings();
+            PrepareDataBindings();
         }
 
         private void PrepareUserInterface()
         {
+            SetUIText();
+
             UpdateRecentFilesMenu();
+        }
+
+        private void SetUIText()
+        {
+            Text = _programNameVersion;
         }
 
         #region Recent Files
@@ -58,9 +75,18 @@ namespace pluginfun
 
                 menuItem.Click += (s, ev) =>
                 {
-                    string filePath = (string)(s as ToolStripMenuItem).Tag;
+                    string filePath = (string)((ToolStripMenuItem)s).Tag;
 
-                    MessageBox.Show(filePath);
+                    if (!File.Exists(filePath))
+                    {
+                        if (MessageBox.Show($"{filePath} not found, remove from recent files?", "File not found", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                        {
+                            RemoveFileFromRecentFiles(filePath);
+                            UpdateRecentFilesMenu();
+                        }
+                    }
+                    //else
+                    // Load(filePath);
                 };
 
                 recentFilesToolStripMenuItem.DropDownItems.Add(menuItem);
@@ -71,7 +97,15 @@ namespace pluginfun
 
         private void PrepareDataBindings()
         {
-            throw new NotImplementedException();
+            // emulation menu databinding
+            pauseToolStripMenuItem.DataBindings.Add(nameof(pauseToolStripMenuItem.Checked), _emulationPaused, nameof(_emulationPaused.Value), false, DataSourceUpdateMode.OnPropertyChanged);
+
+            pauseToolStripMenuItem.DataBindings.Add(nameof(pauseToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value), false, DataSourceUpdateMode.OnPropertyChanged);
+            resetToolStripMenuItem.DataBindings.Add(nameof(resetToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value), false, DataSourceUpdateMode.OnPropertyChanged);
+
+            // options menu databinding
+            limitFpsToolStripMenuItem.DataBindings.Add(nameof(limitFpsToolStripMenuItem.Checked), _config, nameof(_config.LimitFps), false, DataSourceUpdateMode.OnPropertyChanged);
+            pauseOnLostFocusToolStripMenuItem.DataBindings.Add(nameof(pauseOnLostFocusToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
