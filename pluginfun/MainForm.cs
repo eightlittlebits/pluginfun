@@ -163,7 +163,7 @@ namespace pluginfun
         {
             using (var configForm = new ConfigForm(_masterSystemConfig))
             {
-                if (configForm.ShowDialog() == DialogResult.OK)
+                if (configForm.ShowDialog(this) == DialogResult.OK)
                 {
 
                 }

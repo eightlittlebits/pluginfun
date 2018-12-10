@@ -96,6 +96,7 @@
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okButton);
             this.Name = "ConfigForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "ConfigForm";
             this.configPanel.ResumeLayout(false);
             this.configPanel.PerformLayout();
