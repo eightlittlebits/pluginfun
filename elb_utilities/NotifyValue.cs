@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace pluginfun
+namespace elb_utilities
 {
-    class NotifyValue<T> : INotifyPropertyChanged
+    public class NotifyValue<T> : INotifyPropertyChanged
     {
         private T _value;
 
