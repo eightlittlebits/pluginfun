@@ -56,7 +56,8 @@ namespace pluginfun
             // load plugin assemblies
             foreach (var file in Directory.GetFiles("plugins", "*.dll"))
             {
-                Assembly.LoadFrom(file);
+                var assemblyName = AssemblyName.GetAssemblyName(file);
+                Assembly.Load(assemblyName);
             }
 
             // populate plugins menu
@@ -65,11 +66,8 @@ namespace pluginfun
                 var plugin = (IPlugin)Activator.CreateInstance(pluginType);
 
                 var pluginMenuItem = new BindableToolStripMenuItem() { Text = plugin.Name };
-                pluginMenuItem.Click += (s, ev) =>
-                {
-                    plugin.DoTheThing();
-                };
-
+                pluginMenuItem.Click += (s, ev) => plugin.DoTheThing();
+                
                 pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
         }

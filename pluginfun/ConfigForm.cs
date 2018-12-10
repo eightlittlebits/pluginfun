@@ -62,38 +62,19 @@ namespace pluginfun
                                 case FilePathAttribute file:
                                     browseButton.Click += (s, ev) =>
                                     {
-                                        var filePath = (TextBox)((Button)s).Tag;
+                                        var pathTextBox = (TextBox)((Button)s).Tag;
+                                        string filepath = !string.IsNullOrWhiteSpace(pathTextBox.Text) ? Path.GetDirectoryName(pathTextBox.Text) : string.Empty;
 
-                                        using (var openFileDialog = new CommonOpenFileDialog())
-                                        {
-                                            if (!string.IsNullOrWhiteSpace(filePath.Text))
-                                            {
-                                                openFileDialog.InitialDirectory = Path.GetDirectoryName(filePath.Text);
-                                            }
-
-                                            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
-                                            {
-                                                filePath.Text = openFileDialog.FileName;
-                                            }
-                                        }
+                                        pathTextBox.Text = DisplayOpenFileDialog(filepath, false);
                                     };
                                     break;
 
                                 case FolderPathAttribute folder:
                                     browseButton.Click += (s, ev) =>
                                     {
-                                        var folderPath = (TextBox)((Button)s).Tag;
+                                        var pathTextBox = (TextBox)((Button)s).Tag;
 
-                                        using (var openFileDialog = new CommonOpenFileDialog())
-                                        {
-                                            openFileDialog.InitialDirectory = folderPath.Text;
-                                            openFileDialog.IsFolderPicker = true;
-
-                                            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
-                                            {
-                                                folderPath.Text = openFileDialog.FileName;
-                                            }
-                                        }
+                                        pathTextBox.Text = DisplayOpenFileDialog(pathTextBox.Text, true);
                                     };
                                     break;
 
@@ -102,10 +83,8 @@ namespace pluginfun
                             }
 
                             var clearButton = new Button() { Text = "Clear", ClientSize = new Size(40, textBox.Height), Tag = textBox };
-                            clearButton.Click += (s, ev) =>
-                            {
-                                ((TextBox)((Button)s).Tag).Text = string.Empty;
-                            };
+                            clearButton.Click += (s, ev) => ((TextBox)((Button)s).Tag).Text = string.Empty;
+
                             configTableLayoutPanel.Controls.Add(clearButton, 3, i);
                         }
                         else
@@ -113,7 +92,13 @@ namespace pluginfun
                     }
                     else if (property.PropertyType.BaseType == typeof(Enum))
                     {
-                        var comboBox = new ComboBox() { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList };
+                        var comboBox = new ComboBox()
+                        {
+                            Dock = DockStyle.Fill,
+                            DropDownStyle = ComboBoxStyle.DropDownList,
+                            DisplayMember = "Name",
+                            ValueMember = "Value",
+                        };
 
                         comboBox.DataSource = Enum.GetValues(property.PropertyType)
                             .Cast<Enum>()
@@ -123,15 +108,28 @@ namespace pluginfun
                                 Value = value
                             }).ToList();
 
-                        comboBox.DisplayMember = "Name";
-                        comboBox.ValueMember = "Value";
-
                         comboBox.DataBindings.Add(nameof(comboBox.SelectedValue), configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
                         configTableLayoutPanel.Controls.Add(comboBox, 1, i);
                         configTableLayoutPanel.SetColumnSpan(comboBox, 3);
                     }
                 }
             }
+        }
+
+        private string DisplayOpenFileDialog(string path, bool isFolderPicker)
+        {
+            using (var openFileDialog = new CommonOpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = path;
+                openFileDialog.IsFolderPicker = isFolderPicker;
+
+                if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    path = openFileDialog.FileName;
+                }
+            }
+
+            return path;
         }
     }
 }
