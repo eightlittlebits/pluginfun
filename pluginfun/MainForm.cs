@@ -16,6 +16,8 @@ namespace pluginfun
         string _programNameVersion;
         PluginfunConfig _config;
 
+        MasterSystemConfiguration _masterSystemConfig;
+
         NotifyValue<bool> _emulationInitialised;
         NotifyValue<bool> _emulationPaused;
 
@@ -26,6 +28,8 @@ namespace pluginfun
             _programNameVersion = $"{Application.ProductName} {Application.ProductVersion}";
 
             _config = PluginfunConfig.Load();
+
+            _masterSystemConfig = MasterSystemConfiguration.Load();
 
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
@@ -142,6 +146,8 @@ namespace pluginfun
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            _masterSystemConfig.Save();
+
             _config.Save();
 
             base.OnFormClosing(e);
@@ -150,6 +156,17 @@ namespace pluginfun
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private void configurationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var configForm = new ConfigForm(_masterSystemConfig))
+            {
+                if (configForm.ShowDialog() == DialogResult.OK)
+                {
+
+                }
+            }
         }
     }
 }
