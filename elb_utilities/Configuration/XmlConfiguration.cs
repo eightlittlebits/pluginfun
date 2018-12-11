@@ -6,10 +6,15 @@ namespace elb_utilities.Configuration
 {
     // Inspired by ConfigFile.cs, https://github.com/xdanieldzd/MasterFudgeMk2
     [Serializable]
-    public abstract class XmlConfiguration<T> where T : XmlConfiguration<T>, new()
+    public abstract class XmlConfiguration 
     {
         [XmlIgnore]
-        protected virtual string Name { get; } = typeof(T).Name + ".xml";
+        protected virtual string Name { get; }
+
+        public XmlConfiguration()
+        {
+            Name = GetType().Name + ".xml";
+        }
 
         public void Save()
         {
@@ -20,16 +25,16 @@ namespace elb_utilities.Configuration
         {
             using (var stream = new FileStream(filename, FileMode.Create))
             {
-                new XmlSerializer(typeof(T)).Serialize(stream, this);
+                new XmlSerializer(GetType()).Serialize(stream, this);
             }
         }
 
-        public static T Load()
+        public static T Load<T>() where T : XmlConfiguration, new()
         {
-            return Load(new T().Name);
+            return Load<T>(new T().Name);
         }
 
-        public static T Load(string filename)
+        public static T Load<T>(string filename) where T : XmlConfiguration, new()
         {
             T configuration;
 

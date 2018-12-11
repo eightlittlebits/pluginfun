@@ -4,9 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using elb_utilities.Components;
-using pluginfun.shared;
 using elb_utilities;
+using elb_utilities.Components;
+using elb_utilities.Configuration;
+using pluginfun.shared;
 
 namespace pluginfun
 {
@@ -17,10 +18,12 @@ namespace pluginfun
         string _programNameVersion;
         PluginfunConfig _config;
 
-        MasterSystemConfiguration _masterSystemConfig;
+        MachineConfiguration _masterSystemConfig;
 
         NotifyValue<bool> _emulationInitialised;
         NotifyValue<bool> _emulationPaused;
+
+        List<Type> _plugins;
 
         public MainForm()
         {
@@ -28,46 +31,61 @@ namespace pluginfun
 
             _programNameVersion = $"{Application.ProductName} {Application.ProductVersion}";
 
-            _config = PluginfunConfig.Load();
+            _config = PluginfunConfig.Load<PluginfunConfig>();
 
-            _masterSystemConfig = MasterSystemConfiguration.Load();
+            _masterSystemConfig = XmlConfiguration.Load<MasterSystemConfiguration>();
 
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
+
+            _plugins = ScanForPlugins<IPlugin>();
 
             PrepareUserInterface();
             PrepareDataBindings();
         }
 
-        private IEnumerable<Type> GetImplementationsFromAssembly<T>()
+        private List<Type> ScanForPlugins<T>()
         {
-            Type type = typeof(T);
+            var plugins = new List<Type>();
 
-            if (!type.IsInterface) throw new Exception($"{nameof(GetImplementationsFromAssembly)} called with non-interface type {type.Name}");
+            if (!typeof(T).IsInterface) throw new Exception($"{nameof(ScanForPlugins)} called with non-interface type {typeof(T).Name}");
 
-            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).Where(t => type.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            // load any plugins in the currently loaded assemblies, excluding any in the GAC
+            plugins.AddRange(AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache).SelectMany(a => GetImplementationsFromAssembly<T>(a)));
+
+            // scan plugins directory for plugins in a new appdomain so any assemblies scanned and not containing plugins are unloaded
+            using (var appDomain = new AppDomainWithType<PluginFinder>())
+            {
+                var pluginFinder = appDomain.TypeObject;
+                plugins.AddRange(pluginFinder.SearchPath<IPlugin>(Program.PluginsDirectory, "*.dll", SearchOption.AllDirectories));
+            }
+
+            return plugins;
+        }
+
+        private IEnumerable<Type> GetImplementationsFromAssembly<T>(Assembly assembly)
+        {
+            if (!typeof(T).IsInterface) throw new Exception($"{nameof(GetImplementationsFromAssembly)} called with non-interface type {typeof(T).Name}");
+
+            return assembly.GetTypes().Where(t => typeof(T).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
         }
 
         private void PrepareUserInterface()
         {
             SetUIText();
             UpdateRecentFilesMenu();
+            PopulatePluginsMenu();
+        }
 
-            // load plugin assemblies
-            foreach (var file in Directory.GetFiles("plugins", "*.dll"))
-            {
-                var assemblyName = AssemblyName.GetAssemblyName(file);
-                Assembly.Load(assemblyName);
-            }
-
-            // populate plugins menu
-            foreach (var pluginType in GetImplementationsFromAssembly<IPlugin>())
+        private void PopulatePluginsMenu()
+        {
+            foreach (var pluginType in _plugins)
             {
                 var plugin = (IPlugin)Activator.CreateInstance(pluginType);
 
                 var pluginMenuItem = new BindableToolStripMenuItem() { Text = plugin.Name };
                 pluginMenuItem.Click += (s, ev) => plugin.DoTheThing();
-                
+
                 pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
         }
@@ -76,8 +94,6 @@ namespace pluginfun
         {
             Text = _programNameVersion;
         }
-
-        #region Recent Files
 
         public void AddFileToRecentFiles(string filename)
         {
@@ -120,15 +136,13 @@ namespace pluginfun
                             UpdateRecentFilesMenu();
                         }
                     }
-                    //else
-                    // Load(filePath);
+                    else
+                        LoadFile(filePath);
                 };
 
                 recentFilesToolStripMenuItem.DropDownItems.Add(menuItem);
             }
         }
-
-        #endregion
 
         private void PrepareDataBindings()
         {
@@ -141,6 +155,12 @@ namespace pluginfun
             // options menu databinding
             limitFpsToolStripMenuItem.DataBindings.Add(nameof(limitFpsToolStripMenuItem.Checked), _config, nameof(_config.LimitFps), false, DataSourceUpdateMode.OnPropertyChanged);
             pauseOnLostFocusToolStripMenuItem.DataBindings.Add(nameof(pauseOnLostFocusToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
+        }
+
+        public void LoadFile(string path)
+        {
+            AddFileToRecentFiles(path);
+            UpdateRecentFilesMenu();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -163,7 +183,7 @@ namespace pluginfun
             {
                 if (configForm.ShowDialog(this) == DialogResult.OK)
                 {
-
+                    _masterSystemConfig = configForm.Configuration;
                 }
             }
         }

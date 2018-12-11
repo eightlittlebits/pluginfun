@@ -4,8 +4,9 @@ using elb_utilities.Configuration;
 
 namespace pluginfun
 {
-    public interface ISystemConfiguration
+    public abstract class MachineConfiguration : XmlConfiguration
     {
+        public abstract MachineConfiguration Copy();
     }
 
     [AttributeUsage(AttributeTargets.Property)]
@@ -30,7 +31,7 @@ namespace pluginfun
         PAL
     }
 
-    public sealed class MasterSystemConfiguration : XmlConfiguration<MasterSystemConfiguration>, ISystemConfiguration
+    public sealed class MasterSystemConfiguration : MachineConfiguration
     {
         protected override sealed string Name => "mastersystem.xml";
 
@@ -44,5 +45,16 @@ namespace pluginfun
         public string SaveStatePath { get; set; }
 
         public Region Region { get; set; }
+
+        public override MachineConfiguration Copy()
+        {
+            return new MasterSystemConfiguration()
+            {
+                BootRomEnabled = this.BootRomEnabled,
+                BootRomPath = this.BootRomPath,
+                SaveStatePath = this.SaveStatePath,
+                Region = this.Region
+            };
+        }
     }
 }

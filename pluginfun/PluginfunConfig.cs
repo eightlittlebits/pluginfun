@@ -4,7 +4,7 @@ using elb_utilities.Configuration;
 
 namespace pluginfun
 {
-    public class PluginfunConfig : XmlConfiguration<PluginfunConfig>
+    public class PluginfunConfig : XmlConfiguration
     {
         protected override string Name => "pluginfun.xml";
 
