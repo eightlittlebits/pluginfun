@@ -3,7 +3,7 @@ using pluginfun.shared;
 
 namespace pluginfun
 {
-    class InternalPluginOne : IPlugin
+    class InternalPluginOne : IPluginOne
     {
         public string Name => "Internal Plugin One";
 

@@ -11,82 +11,83 @@ using pluginfun.shared;
 
 namespace pluginfun
 {
-    public partial class MainForm : Form
+    partial class MainForm : Form
     {
         const int RecentFileCount = 10;
 
         string _programNameVersion;
         PluginfunConfig _config;
 
-        MachineConfiguration _masterSystemConfig;
+        IEmulatedSystem _emulatedSystem;
 
         NotifyValue<bool> _emulationInitialised;
         NotifyValue<bool> _emulationPaused;
 
-        List<Type> _plugins;
-
+        List<Type> _pluginOnePlugins;
+        
         public MainForm()
         {
             InitializeComponent();
 
             _programNameVersion = $"{Application.ProductName} {Application.ProductVersion}";
 
-            _config = PluginfunConfig.Load<PluginfunConfig>();
+            _config = XmlConfiguration.Load<PluginfunConfig>();
 
-            _masterSystemConfig = XmlConfiguration.Load<MasterSystemConfiguration>();
+            _emulatedSystem = new EmulatedSystem();
 
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
 
-            _plugins = ScanForPlugins<IPlugin>();
+            ScanForPlugins();
 
             PrepareUserInterface();
             PrepareDataBindings();
         }
 
-        private List<Type> ScanForPlugins<T>()
+        private void ScanForPlugins()
         {
-            var plugins = new List<Type>();
-
-            if (!typeof(T).IsInterface) throw new Exception($"{nameof(ScanForPlugins)} called with non-interface type {typeof(T).Name}");
-
-            // load any plugins in the currently loaded assemblies, excluding any in the GAC
-            plugins.AddRange(AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache).SelectMany(a => GetImplementationsFromAssembly<T>(a)));
-
-            // scan plugins directory for plugins in a new appdomain so any assemblies scanned and not containing plugins are unloaded
+            // scan for plugins in a new appdomain so any assemblies scanned and not containing plugins are unloaded
             using (var appDomain = new AppDomainWithType<PluginFinder>())
             {
                 var pluginFinder = appDomain.TypeObject;
-                plugins.AddRange(pluginFinder.SearchPath<IPlugin>(Program.PluginsDirectory, "*.dll", SearchOption.AllDirectories));
-            }
 
-            return plugins;
+                _pluginOnePlugins = FindPluginsOfType<IPluginOne>(pluginFinder);
+            }
         }
 
-        private IEnumerable<Type> GetImplementationsFromAssembly<T>(Assembly assembly)
+        private List<Type> FindPluginsOfType<T>(PluginFinder pluginFinder)
         {
-            if (!typeof(T).IsInterface) throw new Exception($"{nameof(GetImplementationsFromAssembly)} called with non-interface type {typeof(T).Name}");
+            if (!typeof(T).IsInterface) throw new Exception($"{nameof(FindPluginsOfType)} called with non-interface type {typeof(T).Name}");
 
-            return assembly.GetTypes().Where(t => typeof(T).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            var plugins = new List<Type>();
+
+            // load any matching types in the currently loaded assemblies, excluding any in the GAC and any dynamically generated assemblies (xmlserlializer etc)
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache && !a.IsDynamic).ToList();
+            plugins.AddRange(pluginFinder.SearchAssemblies<T>(loadedAssemblies));
+
+            // search in plugins folder for any assemblies with types implementing T
+            plugins.AddRange(pluginFinder.SearchDirectory<T>(Program.PluginsDirectory, "*.dll", true));
+
+            return plugins;
         }
 
         private void PrepareUserInterface()
         {
             SetUIText();
             UpdateRecentFilesMenu();
-            PopulatePluginsMenu();
+            PopulatePluginsMenus();
         }
 
-        private void PopulatePluginsMenu()
+        private void PopulatePluginsMenus()
         {
-            foreach (var pluginType in _plugins)
+            foreach (var pluginType in _pluginOnePlugins)
             {
-                var plugin = (IPlugin)Activator.CreateInstance(pluginType);
+                var plugin = (IPluginOne)Activator.CreateInstance(pluginType);
 
-                var pluginMenuItem = new BindableToolStripMenuItem() { Text = plugin.Name };
+                var pluginMenuItem = new ToolStripMenuItem() { Text = plugin.Name };
                 pluginMenuItem.Click += (s, ev) => plugin.DoTheThing();
 
-                pluginsToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+                pluginOneToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
         }
 
@@ -165,7 +166,7 @@ namespace pluginfun
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _masterSystemConfig.Save();
+            _emulatedSystem.Configuration.Save();
 
             _config.Save();
 
@@ -179,11 +180,11 @@ namespace pluginfun
 
         private void configurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (var configForm = new ConfigForm(_masterSystemConfig))
+            using (var configForm = new ConfigForm(_emulatedSystem))
             {
                 if (configForm.ShowDialog(this) == DialogResult.OK)
                 {
-                    _masterSystemConfig = configForm.Configuration;
+                    _emulatedSystem.Configuration = configForm.Configuration;
                 }
             }
         }

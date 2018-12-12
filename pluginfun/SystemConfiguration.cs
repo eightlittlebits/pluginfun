@@ -1,39 +1,17 @@
-﻿using System;
-using System.ComponentModel;
-using elb_utilities.Configuration;
+﻿using System.ComponentModel;
+using pluginfun.shared;
 
 namespace pluginfun
 {
-    public abstract class MachineConfiguration : XmlConfiguration
-    {
-        public abstract MachineConfiguration Copy();
-    }
-
-    [AttributeUsage(AttributeTargets.Property)]
-    public class PathTypeAttribute : Attribute
-    {
-
-    }
-
-    public class FilePathAttribute : PathTypeAttribute
-    {
-
-    }
-
-    public class FolderPathAttribute : PathTypeAttribute
-    {
-
-    }
-
     public enum Region
     {
         NTSC,
         PAL
     }
 
-    public sealed class MasterSystemConfiguration : MachineConfiguration
-    {
-        protected override sealed string Name => "mastersystem.xml";
+    public sealed class SystemConfiguration : EmulatedSystemConfiguration
+    { 
+        protected override sealed string FileName => "systemconfig.xml";
 
         [Description("Use Boot ROM")]
         public bool BootRomEnabled { get; set; }
@@ -46,9 +24,9 @@ namespace pluginfun
 
         public Region Region { get; set; }
 
-        public override MachineConfiguration Copy()
+        public override EmulatedSystemConfiguration Copy()
         {
-            return new MasterSystemConfiguration()
+            return new SystemConfiguration()
             {
                 BootRomEnabled = this.BootRomEnabled,
                 BootRomPath = this.BootRomPath,

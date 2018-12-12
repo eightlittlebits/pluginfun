@@ -6,20 +6,21 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using pluginfun.shared;
 
 namespace pluginfun
 {
-    public partial class ConfigForm : Form 
-    {
-        private readonly MachineConfiguration _configuration;
+    partial class ConfigForm : Form
+    { 
+        public EmulatedSystemConfiguration Configuration { get; }
 
-        public MachineConfiguration Configuration => _configuration;
-
-        public ConfigForm(MachineConfiguration configuration)
+        public ConfigForm(IEmulatedSystem emulatedSystem)
         {
             InitializeComponent();
 
-            _configuration = configuration.Copy();
+            Text = $"{emulatedSystem.Name} Configuration";
+
+            Configuration = emulatedSystem.Configuration.Copy();
 
             PrepareUserInterface();
         }
@@ -27,7 +28,7 @@ namespace pluginfun
         private void PrepareUserInterface()
         {
             // list all public, non-inherited instance properties
-            var properties = _configuration.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).ToList();
+            var properties = Configuration.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).ToList();
 
             configTableLayoutPanel.RowCount = properties.Count;
 
@@ -42,7 +43,7 @@ namespace pluginfun
                 {
                     // add a checkbox for bool properties
                     var checkBox = new CheckBox() { Text = propertyDescription, Dock = DockStyle.Fill, AutoSize = true, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(6, 3, 3, 3) };
-                    checkBox.DataBindings.Add(nameof(checkBox.Checked), _configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
+                    checkBox.DataBindings.Add(nameof(checkBox.Checked), Configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
                     configTableLayoutPanel.Controls.Add(checkBox, 0, i);
                     configTableLayoutPanel.SetColumnSpan(checkBox, 4);
                 }
@@ -53,7 +54,7 @@ namespace pluginfun
                     if (property.PropertyType == typeof(string))
                     {
                         var textBox = new TextBox() { Dock = DockStyle.Fill, TextAlign = HorizontalAlignment.Left };
-                        textBox.DataBindings.Add(nameof(textBox.Text), _configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
+                        textBox.DataBindings.Add(nameof(textBox.Text), Configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
                         configTableLayoutPanel.Controls.Add(textBox, 1, i);
 
                         if (property.Name.EndsWith("Path"))
@@ -102,7 +103,7 @@ namespace pluginfun
                         {
                             Dock = DockStyle.Fill,
                             DropDownStyle = ComboBoxStyle.DropDownList,
-                            DisplayMember = "Name",
+                            DisplayMember = "Text",
                             ValueMember = "Value",
                         };
 
@@ -110,11 +111,11 @@ namespace pluginfun
                             .Cast<Enum>()
                             .Select(value => new
                             {
-                                Name = property.PropertyType.GetField(value.ToString()).GetCustomAttribute<DescriptionAttribute>()?.Description ?? Enum.GetName(property.PropertyType, value),
+                                Text = property.PropertyType.GetField(value.ToString()).GetCustomAttribute<DescriptionAttribute>()?.Description ?? Enum.GetName(property.PropertyType, value),
                                 Value = value
                             }).ToList();
 
-                        comboBox.DataBindings.Add(nameof(comboBox.SelectedValue), _configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
+                        comboBox.DataBindings.Add(nameof(comboBox.SelectedValue), Configuration, property.Name, false, DataSourceUpdateMode.OnPropertyChanged);
                         configTableLayoutPanel.Controls.Add(comboBox, 1, i);
                         configTableLayoutPanel.SetColumnSpan(comboBox, 3);
                     }

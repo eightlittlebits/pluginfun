@@ -9,16 +9,16 @@ namespace elb_utilities.Configuration
     public abstract class XmlConfiguration 
     {
         [XmlIgnore]
-        protected virtual string Name { get; }
+        protected virtual string FileName { get; }
 
         public XmlConfiguration()
         {
-            Name = GetType().Name + ".xml";
+            FileName = GetType().Name + ".xml";
         }
 
         public void Save()
         {
-            Save(Name);
+            Save(FileName);
         }
 
         public void Save(string filename)
@@ -31,7 +31,7 @@ namespace elb_utilities.Configuration
 
         public static T Load<T>() where T : XmlConfiguration, new()
         {
-            return Load<T>(new T().Name);
+            return Load<T>(new T().FileName);
         }
 
         public static T Load<T>(string filename) where T : XmlConfiguration, new()

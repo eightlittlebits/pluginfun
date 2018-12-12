@@ -41,8 +41,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EmulatedSystemConfiguration.cs" />
+    <Compile Include="IEmulatedSystem.cs" />
     <Compile Include="IPlugin.cs" />
+    <Compile Include="IPluginOne.cs" />
+    <Compile Include="PathTypeAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\elb_utilities\elb_utilities.csproj">
+      <Project>{4CB0317A-DD73-4C34-A9CB-30056A86F4A3}</Project>
+      <Name>elb_utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

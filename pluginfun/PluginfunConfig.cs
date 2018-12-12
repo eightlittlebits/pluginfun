@@ -6,7 +6,7 @@ namespace pluginfun
 {
     public class PluginfunConfig : XmlConfiguration
     {
-        protected override string Name => "pluginfun.xml";
+        protected override string FileName => "pluginfun.xml";
 
         public bool LimitFps { get; set; }
         public bool PauseOnLostFocus { get; set; }
