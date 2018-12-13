@@ -7,8 +7,8 @@
     <ProjectGuid>{D557FD41-DF1E-46A7-8001-19AEC37AF044}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>pluginfun.shared</RootNamespace>
-    <AssemblyName>pluginfun.shared</AssemblyName>
+    <RootNamespace>pluginfun.common</RootNamespace>
+    <AssemblyName>pluginfun.common</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -43,8 +43,9 @@
   <ItemGroup>
     <Compile Include="EmulatedSystemConfiguration.cs" />
     <Compile Include="IEmulatedSystem.cs" />
-    <Compile Include="IPlugin.cs" />
+    <Compile Include="IPluginFunAddin.cs" />
     <Compile Include="IPluginOne.cs" />
+    <Compile Include="IPluginTwo.cs" />
     <Compile Include="PathTypeAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

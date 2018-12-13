@@ -1,5 +1,5 @@
 ﻿using System.Windows.Forms;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace ExternalPluginOne
 {

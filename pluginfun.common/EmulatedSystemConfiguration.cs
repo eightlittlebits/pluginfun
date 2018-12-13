@@ -1,6 +1,6 @@
 ﻿using elb_utilities.Configuration;
 
-namespace pluginfun.shared
+namespace pluginfun.common
 {
     public abstract class EmulatedSystemConfiguration : XmlConfiguration
     {

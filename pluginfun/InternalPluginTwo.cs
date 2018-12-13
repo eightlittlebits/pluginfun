@@ -1,15 +1,15 @@
 ﻿using System.Windows.Forms;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace pluginfun
 {
-    class InternalPluginTwo : IPluginOne
+    class InternalPluginTwo : IPluginTwo
     {
         public string Name => "Internal Plugin Two";
 
-        public void DoTheThing()
+        public void Execute()
         {
-            MessageBox.Show("Doing the thing in Internal Plugin Two!");
+            MessageBox.Show("Execute in Internal Plugin Two!");
         }
     }
 }

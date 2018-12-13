@@ -1,5 +1,5 @@
 ﻿using elb_utilities.Configuration;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace pluginfun
 {

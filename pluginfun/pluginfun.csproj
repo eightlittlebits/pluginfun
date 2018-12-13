@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddinLoader.cs" />
     <Compile Include="AppDomainWithType.cs" />
     <Compile Include="ConfigForm.cs">
       <SubType>Form</SubType>
@@ -70,7 +71,6 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="PluginFinder.cs" />
     <Compile Include="PluginfunConfig.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -109,9 +109,9 @@
       <Project>{4cb0317a-dd73-4c34-a9cb-30056a86f4a3}</Project>
       <Name>elb_utilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\pluginfun.shared\pluginfun.shared.csproj">
+    <ProjectReference Include="..\pluginfun.common\pluginfun.common.csproj">
       <Project>{d557fd41-df1e-46a7-8001-19aec37af044}</Project>
-      <Name>pluginfun.shared</Name>
+      <Name>pluginfun.common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +119,11 @@
       <Link>plugins\ExternalPluginOne.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\ExternalPluginTwo\bin\Debug\ExternalPluginTwo.dll">
+      <Link>plugins\ExternalPluginTwo\ExternalPluginTwo.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

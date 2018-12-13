@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{6A32A08F-DEDF-496D-B986-B985C95666FE}</ProjectGuid>
+    <ProjectGuid>{0B5919A2-747C-4EBC-960A-79CAEBD144D3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ExternalPluginOne</RootNamespace>
-    <AssemblyName>ExternalPluginOne</AssemblyName>
+    <RootNamespace>ExternalPluginTwo</RootNamespace>
+    <AssemblyName>ExternalPluginTwo</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>

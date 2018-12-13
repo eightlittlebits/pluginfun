@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace pluginfun
 {

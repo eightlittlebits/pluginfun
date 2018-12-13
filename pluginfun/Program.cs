@@ -63,7 +63,7 @@ namespace pluginfun
             }
             foreach (var dir in Directory.GetDirectories(path))
             {
-                var file = FindFileInPath(filename, dir);
+                var file = FindFileInPath(dir, filename);
                 if (!string.IsNullOrEmpty(file))
                     return file;
             }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace pluginfun.shared
+namespace pluginfun.common
 {
     [AttributeUsage(AttributeTargets.Property)]
     public abstract class PathTypeAttribute : Attribute

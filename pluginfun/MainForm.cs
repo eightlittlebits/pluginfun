@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
 using elb_utilities;
-using elb_utilities.Components;
 using elb_utilities.Configuration;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace pluginfun
 {
@@ -23,8 +21,8 @@ namespace pluginfun
         NotifyValue<bool> _emulationInitialised;
         NotifyValue<bool> _emulationPaused;
 
-        List<Type> _pluginOnePlugins;
-        
+        List<Type> _addins;
+
         public MainForm()
         {
             InitializeComponent();
@@ -38,37 +36,10 @@ namespace pluginfun
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
 
-            ScanForPlugins();
+            _addins = AddinLoader.Load<IPluginFunAddin>(Program.PluginsDirectory);
 
             PrepareUserInterface();
             PrepareDataBindings();
-        }
-
-        private void ScanForPlugins()
-        {
-            // scan for plugins in a new appdomain so any assemblies scanned and not containing plugins are unloaded
-            using (var appDomain = new AppDomainWithType<PluginFinder>())
-            {
-                var pluginFinder = appDomain.TypeObject;
-
-                _pluginOnePlugins = FindPluginsOfType<IPluginOne>(pluginFinder);
-            }
-        }
-
-        private List<Type> FindPluginsOfType<T>(PluginFinder pluginFinder)
-        {
-            if (!typeof(T).IsInterface) throw new Exception($"{nameof(FindPluginsOfType)} called with non-interface type {typeof(T).Name}");
-
-            var plugins = new List<Type>();
-
-            // load any matching types in the currently loaded assemblies, excluding any in the GAC and any dynamically generated assemblies (xmlserlializer etc)
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache && !a.IsDynamic).ToList();
-            plugins.AddRange(pluginFinder.SearchAssemblies<T>(loadedAssemblies));
-
-            // search in plugins folder for any assemblies with types implementing T
-            plugins.AddRange(pluginFinder.SearchDirectory<T>(Program.PluginsDirectory, "*.dll", true));
-
-            return plugins;
         }
 
         private void PrepareUserInterface()
@@ -80,7 +51,12 @@ namespace pluginfun
 
         private void PopulatePluginsMenus()
         {
-            foreach (var pluginType in _pluginOnePlugins)
+            IEnumerable<Type> GetAddinsOfType<T>(List<Type> addins) where T : IPluginFunAddin
+            {
+                return addins.Where(t => typeof(T).IsAssignableFrom(t));
+            }
+
+            foreach (var pluginType in GetAddinsOfType<IPluginOne>(_addins))
             {
                 var plugin = (IPluginOne)Activator.CreateInstance(pluginType);
 
@@ -88,6 +64,16 @@ namespace pluginfun
                 pluginMenuItem.Click += (s, ev) => plugin.DoTheThing();
 
                 pluginOneToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
+            }
+
+            foreach (var pluginType in GetAddinsOfType<IPluginTwo>(_addins))
+            {
+                var plugin = (IPluginTwo)Activator.CreateInstance(pluginType);
+
+                var pluginMenuItem = new ToolStripMenuItem() { Text = plugin.Name };
+                pluginMenuItem.Click += (s, ev) => plugin.Execute();
+
+                pluginTwoToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
         }
 

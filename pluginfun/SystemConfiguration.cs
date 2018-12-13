@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using pluginfun.shared;
+using pluginfun.common;
 
 namespace pluginfun
 {

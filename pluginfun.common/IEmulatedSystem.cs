@@ -1,4 +1,4 @@
-﻿namespace pluginfun.shared
+﻿namespace pluginfun.common
 {
     public interface IEmulatedSystem
     {
