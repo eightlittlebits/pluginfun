@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace pluginfun.common
 {
-    public interface IPluginTwo : IPluginFunAddin
+    public interface IPluginTwo : IDynamicallyLoadableComponent
     {
         void Execute();
     }

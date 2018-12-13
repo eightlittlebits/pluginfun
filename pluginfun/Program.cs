@@ -23,7 +23,7 @@ namespace pluginfun
             Application.Run(new MainForm());
         }
 
-        //https://weblog.west-wind.com/posts/2016/Dec/12/Loading-NET-Assemblies-out-of-Seperate-Folders
+        // https://weblog.west-wind.com/posts/2016/Dec/12/Loading-NET-Assemblies-out-of-Seperate-Folders
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             // Ignore missing resources
@@ -61,6 +61,7 @@ namespace pluginfun
                     return fullFile;
 
             }
+
             foreach (var dir in Directory.GetDirectories(path))
             {
                 var file = FindFileInPath(dir, filename);

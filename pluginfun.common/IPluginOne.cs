@@ -1,6 +1,6 @@
 ﻿namespace pluginfun.common
 {
-    public interface IPluginOne : IPluginFunAddin
+    public interface IPluginOne : IDynamicallyLoadableComponent
     {
         void DoTheThing();
     }

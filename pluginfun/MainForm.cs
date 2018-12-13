@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using elb_utilities;
 using elb_utilities.Configuration;
+using elb_utilities.NativeMethods;
 using pluginfun.common;
 
 namespace pluginfun
@@ -23,6 +24,8 @@ namespace pluginfun
 
         List<Type> _addins;
 
+        static bool ApplicationStillIdle => !User32.PeekMessage(out _, IntPtr.Zero, 0, 0, 0);
+
         public MainForm()
         {
             InitializeComponent();
@@ -36,10 +39,12 @@ namespace pluginfun
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
 
-            _addins = AddinLoader.Load<IPluginFunAddin>(Program.PluginsDirectory);
+            _addins = AddinLoader.Load<IDynamicallyLoadableComponent>(Program.PluginsDirectory);
 
             PrepareUserInterface();
             PrepareDataBindings();
+
+            Application.Idle += (s, ev) => { while (_emulationInitialised && !_emulationPaused && ApplicationStillIdle) { RunFrame(); } };
         }
 
         private void PrepareUserInterface()
@@ -51,12 +56,12 @@ namespace pluginfun
 
         private void PopulatePluginsMenus()
         {
-            IEnumerable<Type> GetAddinsOfType<T>(List<Type> addins) where T : IPluginFunAddin
+            IEnumerable<Type> GetComponentsOfType<T>(List<Type> addins)
             {
                 return addins.Where(t => typeof(T).IsAssignableFrom(t));
             }
 
-            foreach (var pluginType in GetAddinsOfType<IPluginOne>(_addins))
+            foreach (var pluginType in GetComponentsOfType<IPluginOne>(_addins))
             {
                 var plugin = (IPluginOne)Activator.CreateInstance(pluginType);
 
@@ -66,7 +71,7 @@ namespace pluginfun
                 pluginOneToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
 
-            foreach (var pluginType in GetAddinsOfType<IPluginTwo>(_addins))
+            foreach (var pluginType in GetComponentsOfType<IPluginTwo>(_addins))
             {
                 var plugin = (IPluginTwo)Activator.CreateInstance(pluginType);
 
@@ -144,10 +149,15 @@ namespace pluginfun
             pauseOnLostFocusToolStripMenuItem.DataBindings.Add(nameof(pauseOnLostFocusToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
-        public void LoadFile(string path)
+        private void LoadFile(string path)
         {
             AddFileToRecentFiles(path);
             UpdateRecentFilesMenu();
+        }
+
+        private void RunFrame()
+        {
+
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
