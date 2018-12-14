@@ -22,7 +22,8 @@ namespace pluginfun
         NotifyValue<bool> _emulationInitialised;
         NotifyValue<bool> _emulationPaused;
 
-        List<Type> _addins;
+        List<Type> _pluginOnePlugins;
+        List<Type> _pluginTwoPlugins;
 
         static bool ApplicationStillIdle => !User32.PeekMessage(out _, IntPtr.Zero, 0, 0, 0);
 
@@ -39,7 +40,7 @@ namespace pluginfun
             _emulationInitialised = new NotifyValue<bool>(false);
             _emulationPaused = new NotifyValue<bool>(false);
 
-            _addins = AddinLoader.Load<IDynamicallyLoadableComponent>(Program.PluginsDirectory);
+            LoadDynamicComponents();
 
             PrepareUserInterface();
             PrepareDataBindings();
@@ -47,21 +48,29 @@ namespace pluginfun
             Application.Idle += (s, ev) => { while (_emulationInitialised && !_emulationPaused && ApplicationStillIdle) { RunFrame(); } };
         }
 
+        private void LoadDynamicComponents()
+        {
+            IEnumerable<Type> GetComponentsOfType<T>(List<Type> componentList)
+            {
+                return componentList.Where(t => typeof(T).IsAssignableFrom(t));
+            }
+
+            var components = AddinLoader.Load<IDynamicallyLoadableComponent>(Program.PluginsDirectory);
+
+            _pluginOnePlugins = new List<Type>(GetComponentsOfType<IPluginOne>(components));
+            _pluginTwoPlugins = new List<Type>(GetComponentsOfType<IPluginTwo>(components));
+        }
+
         private void PrepareUserInterface()
         {
             SetUIText();
-            UpdateRecentFilesMenu();
             PopulatePluginsMenus();
+            UpdateRecentFilesMenu();
         }
 
         private void PopulatePluginsMenus()
         {
-            IEnumerable<Type> GetComponentsOfType<T>(List<Type> addins)
-            {
-                return addins.Where(t => typeof(T).IsAssignableFrom(t));
-            }
-
-            foreach (var pluginType in GetComponentsOfType<IPluginOne>(_addins))
+            foreach (var pluginType in _pluginOnePlugins)
             {
                 var plugin = (IPluginOne)Activator.CreateInstance(pluginType);
 
@@ -71,7 +80,7 @@ namespace pluginfun
                 pluginOneToolStripMenuItem.DropDownItems.Add(pluginMenuItem);
             }
 
-            foreach (var pluginType in GetComponentsOfType<IPluginTwo>(_addins))
+            foreach (var pluginType in _pluginTwoPlugins)
             {
                 var plugin = (IPluginTwo)Activator.CreateInstance(pluginType);
 
@@ -97,11 +106,13 @@ namespace pluginfun
 
             // only store the top RecentFileCount (10) entries
             _config.RecentFiles = files.Take(RecentFileCount).ToList();
+            UpdateRecentFilesMenu();
         }
 
         private void RemoveFileFromRecentFiles(string filename)
         {
             _config.RecentFiles.Remove(filename);
+            UpdateRecentFilesMenu();
         }
 
         private void UpdateRecentFilesMenu()
@@ -125,7 +136,6 @@ namespace pluginfun
                         if (MessageBox.Show($"{filePath} not found, remove from recent files?", "File not found", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                         {
                             RemoveFileFromRecentFiles(filePath);
-                            UpdateRecentFilesMenu();
                         }
                     }
                     else
@@ -152,7 +162,6 @@ namespace pluginfun
         private void LoadFile(string path)
         {
             AddFileToRecentFiles(path);
-            UpdateRecentFilesMenu();
         }
 
         private void RunFrame()
