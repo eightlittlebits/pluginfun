@@ -94,6 +94,17 @@ namespace pluginfun
         private void SetUIText()
         {
             Text = _programNameVersion;
+
+            aboutToolStripMenuItem.Text = $"About {Application.ProductName}";
+
+            if (!_emulationInitialised)
+            {
+                statusToolStripStatusLabel.Text = "Ready...";
+            }
+            else
+            {
+                statusToolStripStatusLabel.Text = _emulationPaused ? "Paused" : "Running";
+            }
         }
 
         public void AddFileToRecentFiles(string filename)
@@ -120,29 +131,34 @@ namespace pluginfun
             // remove existing entries
             recentFilesToolStripMenuItem.DropDownItems.Clear();
 
-            foreach (var recent in _config.RecentFiles.Select((filename, index) => new { Index = index, Filename = filename }))
+            recentFilesToolStripMenuItem.Enabled = _config.RecentFiles.Count > 0;
+
+            if (recentFilesToolStripMenuItem.Enabled)
             {
-                var menuItem = new ToolStripMenuItem($"&{recent.Index} {recent.Filename}")
+                foreach (var recent in _config.RecentFiles.Select((filename, index) => new { Index = index, Filename = filename }))
                 {
-                    Tag = recent.Filename
-                };
-
-                menuItem.Click += (s, ev) =>
-                {
-                    string filePath = (string)((ToolStripMenuItem)s).Tag;
-
-                    if (!File.Exists(filePath))
+                    var menuItem = new ToolStripMenuItem($"&{recent.Index} {recent.Filename}")
                     {
-                        if (MessageBox.Show($"{filePath} not found, remove from recent files?", "File not found", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                        {
-                            RemoveFileFromRecentFiles(filePath);
-                        }
-                    }
-                    else
-                        LoadFile(filePath);
-                };
+                        Tag = recent.Filename
+                    };
 
-                recentFilesToolStripMenuItem.DropDownItems.Add(menuItem);
+                    menuItem.Click += (s, ev) =>
+                    {
+                        string filePath = (string)((ToolStripMenuItem)s).Tag;
+
+                        if (!File.Exists(filePath))
+                        {
+                            if (MessageBox.Show($"{filePath} not found, remove from recent files?", "File not found", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                            {
+                                RemoveFileFromRecentFiles(filePath);
+                            }
+                        }
+                        else
+                            LoadFile(filePath);
+                    };
+
+                    recentFilesToolStripMenuItem.DropDownItems.Add(menuItem);
+                } 
             }
         }
 
