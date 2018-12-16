@@ -62,6 +62,9 @@
     <Compile Include="ConfigForm.Designer.cs">
       <DependentUpon>ConfigForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="DisplayControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="EmulatedSystem.cs" />
     <Compile Include="InternalPluginOne.cs" />
     <Compile Include="InternalPluginTwo.cs" />

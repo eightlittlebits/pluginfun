@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,6 +19,9 @@ namespace pluginfun
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
+            // set timer resolution to 1ms so the sleep gets the required accurcacy in the wait loop
+            elb_utilities.NativeMethods.WinMM.TimeBeginPeriod(1);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
@@ -26,6 +30,8 @@ namespace pluginfun
         // https://weblog.west-wind.com/posts/2016/Dec/12/Loading-NET-Assemblies-out-of-Seperate-Folders
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
+            Debug.WriteLine($"{nameof(CurrentDomain_AssemblyResolve)} - {args.Name} {args.RequestingAssembly}");
+
             // Ignore missing resources
             if (args.Name.Contains(".resources"))
                 return null;
@@ -36,7 +42,6 @@ namespace pluginfun
                 return assembly;
 
             // Try to load by filename - split out the filename of the full assembly name
-            // and append the base path of the original assembly (ie. look in the same dir)
             string filename = args.Name.Split(',')[0] + ".dll";
 
             // recursively check the plugins directory
@@ -52,24 +57,8 @@ namespace pluginfun
 
         private static string FindFileInPath(string path, string filename)
         {
-            filename = filename.ToLower();
+            return Directory.EnumerateFiles(path, filename, SearchOption.AllDirectories).FirstOrDefault();
 
-            foreach (var fullFile in Directory.GetFiles(path))
-            {
-                var file = Path.GetFileName(fullFile).ToLower();
-                if (file == filename)
-                    return fullFile;
-
-            }
-
-            foreach (var dir in Directory.GetDirectories(path))
-            {
-                var file = FindFileInPath(dir, filename);
-                if (!string.IsNullOrEmpty(file))
-                    return file;
-            }
-
-            return null;
         }
     }
 }

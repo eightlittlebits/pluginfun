@@ -43,14 +43,15 @@
             this.configurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.limitFpsToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
-            this.pauseOnLostFocusToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
+            this.pauseWhenFocusLostToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
             this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginOneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginTwoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.statusToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.displayControl = new pluginfun.DisplayControl();
             this.menuStrip.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
@@ -162,7 +163,7 @@
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.limitFpsToolStripMenuItem,
-            this.pauseOnLostFocusToolStripMenuItem});
+            this.pauseWhenFocusLostToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "&Options";
@@ -171,15 +172,15 @@
             // 
             this.limitFpsToolStripMenuItem.CheckOnClick = true;
             this.limitFpsToolStripMenuItem.Name = "limitFpsToolStripMenuItem";
-            this.limitFpsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.limitFpsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.limitFpsToolStripMenuItem.Text = "&Limit FPS";
             // 
-            // pauseOnLostFocusToolStripMenuItem
+            // pauseWhenFocusLostToolStripMenuItem
             // 
-            this.pauseOnLostFocusToolStripMenuItem.CheckOnClick = true;
-            this.pauseOnLostFocusToolStripMenuItem.Name = "pauseOnLostFocusToolStripMenuItem";
-            this.pauseOnLostFocusToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.pauseOnLostFocusToolStripMenuItem.Text = "&Pause on lost focus";
+            this.pauseWhenFocusLostToolStripMenuItem.CheckOnClick = true;
+            this.pauseWhenFocusLostToolStripMenuItem.Name = "pauseWhenFocusLostToolStripMenuItem";
+            this.pauseWhenFocusLostToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.pauseWhenFocusLostToolStripMenuItem.Text = "&Pause when focus lost";
             // 
             // pluginsToolStripMenuItem
             // 
@@ -210,6 +211,12 @@
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "&Help";
             // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.aboutToolStripMenuItem.Text = "&About";
+            // 
             // statusStrip
             // 
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -228,17 +235,23 @@
             this.statusToolStripStatusLabel.Text = "---";
             this.statusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // aboutToolStripMenuItem
+            // displayControl
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.aboutToolStripMenuItem.Text = "&About";
+            this.displayControl.BackColor = System.Drawing.Color.Black;
+            this.displayControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.displayControl.Location = new System.Drawing.Point(0, 24);
+            this.displayControl.Name = "displayControl";
+            this.displayControl.Size = new System.Drawing.Size(481, 387);
+            this.displayControl.TabIndex = 2;
+            this.displayControl.Text = "displayControl1";
+            this.displayControl.Paint += new System.Windows.Forms.PaintEventHandler(this.displayControl_Paint);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(481, 433);
+            this.Controls.Add(this.displayControl);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.menuStrip);
             this.MainMenuStrip = this.menuStrip;
@@ -268,7 +281,7 @@
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private elb_utilities.Components.BindableToolStripMenuItem pauseToolStripMenuItem;
         private elb_utilities.Components.BindableToolStripMenuItem resetToolStripMenuItem;
-        private elb_utilities.Components.BindableToolStripMenuItem pauseOnLostFocusToolStripMenuItem;
+        private elb_utilities.Components.BindableToolStripMenuItem pauseWhenFocusLostToolStripMenuItem;
         private elb_utilities.Components.BindableToolStripMenuItem limitFpsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pluginsToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
@@ -278,6 +291,7 @@
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel statusToolStripStatusLabel;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private DisplayControl displayControl;
     }
 }
 

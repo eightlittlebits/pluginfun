@@ -11,19 +11,9 @@ namespace pluginfun
     {
         internal static List<Type> Load<T>(string pluginPath)
         {
-            if (!typeof(T).IsInterface) throw new Exception($"{nameof(Load)} called with non-interface type {typeof(T).Name}");
+            if (!typeof(T).IsInterface) throw new Exception($"{nameof(AddinLoader)}.{nameof(Load)} called with non-interface type: {typeof(T).Name}");
 
             var addins = new List<Type>();
-
-            // load any matching types in the currently loaded assemblies, excluding any in the GAC and any dynamically generated assemblies (xmlserlializer etc)
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache && !a.IsDynamic).ToList();
-
-#if DEBUG
-            // this might be loaded if we've used the debugger before we reach this point
-            loadedAssemblies.RemoveAll(x => x.FullName.StartsWith("Microsoft.VisualStudio.Debugger.Runtime"));
-#endif
-
-            addins.AddRange(GetImplementationsFromAssemblies<T>(loadedAssemblies));
 
             // scan for plugins in other dlls in a new appdomain so any assemblies scanned and not containing plugins are unloaded
             using (var appDomain = new AppDomainWithType<AddinLoader>())
@@ -43,8 +33,10 @@ namespace pluginfun
             return GetImplementationsFromAssemblies<T>(Directory.GetFiles(path, searchPattern, searchOption).Select(file => Assembly.LoadFrom(file))).ToList();
         }
 
-        private static IEnumerable<Type> GetImplementationsFromAssemblies<T>(IEnumerable<Assembly> assemblies)
+        internal static IEnumerable<Type> GetImplementationsFromAssemblies<T>(IEnumerable<Assembly> assemblies)
         {
+            if (!typeof(T).IsInterface) throw new Exception($"{nameof(AddinLoader)}.{nameof(GetImplementationsFromAssemblies)} called with non-interface type: {typeof(T).Name}");
+
             return assemblies.SelectMany(a => GetImplementationsFromAssembly<T>(a));
         }
 

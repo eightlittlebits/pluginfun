@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using elb_utilities;
 using elb_utilities.Configuration;
@@ -24,6 +27,8 @@ namespace pluginfun
 
         List<Type> _pluginOnePlugins;
         List<Type> _pluginTwoPlugins;
+
+        long _lastFrameTimestamp;
 
         static bool ApplicationStillIdle => !User32.PeekMessage(out _, IntPtr.Zero, 0, 0, 0);
 
@@ -55,7 +60,21 @@ namespace pluginfun
                 return componentList.Where(t => typeof(T).IsAssignableFrom(t));
             }
 
-            var components = AddinLoader.Load<IDynamicallyLoadableComponent>(Program.PluginsDirectory);
+            var components = new List<Type>();
+
+            // get currently loaded assemblies excluding any in the GAC and any dynamically generated assemblies (xmlserlializer etc)
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.GlobalAssemblyCache && !a.IsDynamic).ToList();
+
+#if DEBUG
+            // this might be loaded if we've used the debugger before we reach this point
+            loadedAssemblies.RemoveAll(x => x.FullName.StartsWith("Microsoft.VisualStudio.Debugger.Runtime"));
+#endif
+
+            // load any matching types in the currently loaded assemblies
+            components.AddRange(AddinLoader.GetImplementationsFromAssemblies<IDynamicallyLoadableComponent>(loadedAssemblies));
+
+            // load components from the plugins directory
+            components.AddRange(AddinLoader.Load<IDynamicallyLoadableComponent>(Program.PluginsDirectory));
 
             _pluginOnePlugins = new List<Type>(GetComponentsOfType<IPluginOne>(components));
             _pluginTwoPlugins = new List<Type>(GetComponentsOfType<IPluginTwo>(components));
@@ -99,7 +118,7 @@ namespace pluginfun
 
             if (!_emulationInitialised)
             {
-                statusToolStripStatusLabel.Text = "Ready...";
+                statusToolStripStatusLabel.Text = "Ready";
             }
             else
             {
@@ -158,7 +177,7 @@ namespace pluginfun
                     };
 
                     recentFilesToolStripMenuItem.DropDownItems.Add(menuItem);
-                } 
+                }
             }
         }
 
@@ -172,7 +191,7 @@ namespace pluginfun
 
             // options menu databinding
             limitFpsToolStripMenuItem.DataBindings.Add(nameof(limitFpsToolStripMenuItem.Checked), _config, nameof(_config.LimitFps), false, DataSourceUpdateMode.OnPropertyChanged);
-            pauseOnLostFocusToolStripMenuItem.DataBindings.Add(nameof(pauseOnLostFocusToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
+            pauseWhenFocusLostToolStripMenuItem.DataBindings.Add(nameof(pauseWhenFocusLostToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         private void LoadFile(string path)
@@ -182,7 +201,30 @@ namespace pluginfun
 
         private void RunFrame()
         {
+            long currentTimeStamp = Stopwatch.GetTimestamp();
+            long elapsedTicks = currentTimeStamp - _lastFrameTimestamp;
 
+            if (_config.LimitFps && elapsedTicks < _targetFrameTicks)
+            {
+                // get ms to sleep for, cast to int to truncate to nearest millisecond
+                // take 1 ms off the sleep time as we don't always hit the sleep exactly, trade
+                // burning extra cpu in the spin loop for accuracy
+                int sleepMilliseconds = (int)((_targetFrameTicks - elapsedTicks) * 1000 / _stopwatchFrequency) - 1;
+
+                if (sleepMilliseconds > 0)
+                {
+                    Thread.Sleep(sleepMilliseconds);
+                }
+
+                // spin for the remaining partial millisecond to hit target frame rate
+                while ((Stopwatch.GetTimestamp() - _lastFrameTimestamp) < _targetFrameTicks) ;
+            }
+
+            long endFrameTimestamp = Stopwatch.GetTimestamp();
+
+            long totalFrameTicks = endFrameTimestamp - _lastFrameTimestamp;
+
+            _lastFrameTimestamp = endFrameTimestamp;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -207,6 +249,39 @@ namespace pluginfun
                 {
                     _emulatedSystem.Configuration = configForm.Configuration;
                 }
+            }
+        }
+
+        private void displayControl_Paint(object sender, PaintEventArgs e)
+        {
+            // https://stackoverflow.com/a/14731922
+            // https://opensourcehacker.com/2011/12/01/calculate-aspect-ratio-conserving-resize-for-images-in-javascript/
+            (int width, int height) CalculateAspectRatioFit(int sourceWidth, int sourceHeight, int destWidth, int destHeight)
+            {
+                var ratio = Math.Min((double)destWidth / sourceWidth, (double)destHeight / sourceHeight);
+
+                return ((int)(sourceWidth * ratio), (int)(sourceHeight * ratio));
+            }
+
+            int ScreenWidth = 160;
+            int ScreenHeight = 144;
+
+            var display = (DisplayControl)sender;
+
+            var (width, height) = CalculateAspectRatioFit(ScreenWidth, ScreenHeight, display.ClientSize.Width, display.ClientSize.Height);
+
+            using (var myBrush = new SolidBrush(Color.Red))
+            using (var formGraphics = display.CreateGraphics())
+            {
+                int left = 0, top = 0;
+
+                if (width < display.Width)
+                    left = (display.Width - width) / 2;
+                else
+                    top = (display.Height - height) / 2;
+
+                formGraphics.Clear(Color.Black);
+                formGraphics.FillRectangle(myBrush, new Rectangle(left, top, width, height));
             }
         }
     }
