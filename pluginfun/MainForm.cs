@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -28,6 +30,9 @@ namespace pluginfun
         List<Type> _pluginOnePlugins;
         List<Type> _pluginTwoPlugins;
 
+        readonly double _stopwatchFrequency;
+        double _targetFrameTicks = 0;
+
         long _lastFrameTimestamp;
 
         static bool ApplicationStillIdle => !User32.PeekMessage(out _, IntPtr.Zero, 0, 0, 0);
@@ -37,6 +42,8 @@ namespace pluginfun
             InitializeComponent();
 
             _programNameVersion = $"{Application.ProductName} {Application.ProductVersion}";
+
+            _stopwatchFrequency = Stopwatch.Frequency;
 
             _config = XmlConfiguration.Load<PluginfunConfig>();
 
@@ -49,6 +56,8 @@ namespace pluginfun
 
             PrepareUserInterface();
             PrepareDataBindings();
+
+            InitBitmaps();
 
             Application.Idle += (s, ev) => { while (_emulationInitialised && !_emulationPaused && ApplicationStillIdle) { RunFrame(); } };
         }
@@ -183,15 +192,21 @@ namespace pluginfun
 
         private void PrepareDataBindings()
         {
-            // emulation menu databinding
-            pauseToolStripMenuItem.DataBindings.Add(nameof(pauseToolStripMenuItem.Checked), _emulationPaused, nameof(_emulationPaused.Value), false, DataSourceUpdateMode.OnPropertyChanged);
+            void AddBinding(IBindableComponent component, string propertyName, object dataSource, string dataMember, bool formattingEnabled = false, DataSourceUpdateMode updateMode = DataSourceUpdateMode.OnPropertyChanged)
+            {
+                component.DataBindings.Add(propertyName, dataSource, dataMember, formattingEnabled, updateMode);
+            }
 
-            pauseToolStripMenuItem.DataBindings.Add(nameof(pauseToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value), false, DataSourceUpdateMode.OnPropertyChanged);
-            resetToolStripMenuItem.DataBindings.Add(nameof(resetToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value), false, DataSourceUpdateMode.OnPropertyChanged);
+            // emulation menu databinding
+            AddBinding(pauseToolStripMenuItem, nameof(pauseToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value));
+            AddBinding(resetToolStripMenuItem, nameof(resetToolStripMenuItem.Enabled), _emulationInitialised, nameof(_emulationInitialised.Value));
+
+            AddBinding(pauseToolStripMenuItem, nameof(pauseToolStripMenuItem.Checked), _emulationPaused, nameof(_emulationPaused.Value));
 
             // options menu databinding
-            limitFpsToolStripMenuItem.DataBindings.Add(nameof(limitFpsToolStripMenuItem.Checked), _config, nameof(_config.LimitFps), false, DataSourceUpdateMode.OnPropertyChanged);
-            pauseWhenFocusLostToolStripMenuItem.DataBindings.Add(nameof(pauseWhenFocusLostToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus), false, DataSourceUpdateMode.OnPropertyChanged);
+            AddBinding(limitFpsToolStripMenuItem, nameof(limitFpsToolStripMenuItem.Checked), _config, nameof(_config.LimitFps));
+            AddBinding(pauseWhenFocusLostToolStripMenuItem, nameof(pauseWhenFocusLostToolStripMenuItem.Checked), _config, nameof(_config.PauseOnLostFocus));
+            AddBinding(forceSquarePixelsToolStripMenuItem, nameof(forceSquarePixelsToolStripMenuItem.Checked), _config, nameof(_config.ForceSquarePixels));
         }
 
         private void LoadFile(string path)
@@ -201,8 +216,12 @@ namespace pluginfun
 
         private void RunFrame()
         {
-            long currentTimeStamp = Stopwatch.GetTimestamp();
-            long elapsedTicks = currentTimeStamp - _lastFrameTimestamp;
+            // run frame
+
+            // render
+
+            //sleep
+            long elapsedTicks = Stopwatch.GetTimestamp() - _lastFrameTimestamp;
 
             if (_config.LimitFps && elapsedTicks < _targetFrameTicks)
             {
@@ -220,11 +239,7 @@ namespace pluginfun
                 while ((Stopwatch.GetTimestamp() - _lastFrameTimestamp) < _targetFrameTicks) ;
             }
 
-            long endFrameTimestamp = Stopwatch.GetTimestamp();
-
-            long totalFrameTicks = endFrameTimestamp - _lastFrameTimestamp;
-
-            _lastFrameTimestamp = endFrameTimestamp;
+            _lastFrameTimestamp = Stopwatch.GetTimestamp();
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -252,6 +267,57 @@ namespace pluginfun
             }
         }
 
+        //private void displayControl_Paint(object sender, PaintEventArgs e)
+        //{
+        //    // https://stackoverflow.com/a/14731922
+        //    // https://opensourcehacker.com/2011/12/01/calculate-aspect-ratio-conserving-resize-for-images-in-javascript/
+        //    (int width, int height) CalculateAspectRatioFit(int sourceWidth, int sourceHeight, int destWidth, int destHeight)
+        //    {
+        //        var ratio = Math.Min((double)destWidth / sourceWidth, (double)destHeight / sourceHeight);
+
+        //        return ((int)(sourceWidth * ratio), (int)(sourceHeight * ratio));
+        //    }
+
+        //    int screenWidth = 160;
+        //    int screenHeight = 144;
+
+        //    double pixelAspectRatio = _config.ForceSquarePixels ? 1 : 47.0 / 43; // GB screen 47mm x 43mm, pixels not square
+
+        //    var display = (DisplayControl)sender;
+
+        //    var (width, height) = CalculateAspectRatioFit((int)(screenWidth * pixelAspectRatio), screenHeight, display.ClientSize.Width, display.ClientSize.Height);
+
+        //    using (var myBrush = new SolidBrush(Color.CornflowerBlue))
+        //    {
+        //        int left = 0, top = 0;
+
+        //        if (width < display.Width)
+        //            left = (display.Width - width) / 2;
+        //        else
+        //            top = (display.Height - height) / 2;
+
+        //        e.Graphics.Clear(Color.Black);
+        //        e.Graphics.FillRectangle(myBrush, left, top, width, height);
+        //    }
+        //}
+
+        int _activeScreenBuffer = 0;
+        int _lastScreenBuffer = 1;
+        Bitmap[] _screenBuffer = new Bitmap[2];
+
+        private void InitBitmaps()
+        {
+            for (int i = 0; i < _screenBuffer.Length; i++)
+            {
+                _screenBuffer[i] = new Bitmap(160, 144, PixelFormat.Format32bppRgb);
+
+                using (var graphics = Graphics.FromImage(_screenBuffer[i]))
+                {
+                    graphics.Clear(Color.FromArgb(0xFF, 0xEF, 0xEF, 0xEF));
+                }
+            }
+        }
+
         private void displayControl_Paint(object sender, PaintEventArgs e)
         {
             // https://stackoverflow.com/a/14731922
@@ -263,25 +329,117 @@ namespace pluginfun
                 return ((int)(sourceWidth * ratio), (int)(sourceHeight * ratio));
             }
 
-            int ScreenWidth = 160;
-            int ScreenHeight = 144;
+            int screenWidth = 160;
+            int screenHeight = 144;
+
+            double pixelAspectRatio = _config.ForceSquarePixels ? 1 : 47.0 / 43; // GB screen 47mm x 43mm, pixels not square
 
             var display = (DisplayControl)sender;
 
-            var (width, height) = CalculateAspectRatioFit(ScreenWidth, ScreenHeight, display.ClientSize.Width, display.ClientSize.Height);
+            var (width, height) = CalculateAspectRatioFit((int)(screenWidth * pixelAspectRatio), screenHeight, display.ClientSize.Width, display.ClientSize.Height);
 
-            using (var myBrush = new SolidBrush(Color.Red))
-            using (var formGraphics = display.CreateGraphics())
+            int left = 0, top = 0;
+
+            if (width < display.Width)
+                left = (display.Width - width) / 2;
+            else
+                top = (display.Height - height) / 2;
+
+            FadeImages();
+
+            var screenBuffer = _screenBuffer[_activeScreenBuffer];
+
+            //var sourceRectangle = new RectangleF(-0.5f, -0.5f, screenBuffer.Width, screenBuffer.Height);
+            //var destinationRectangle = new RectangleF(left, top, width, height);
+
+            //e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+            //e.Graphics.DrawImage(screenBuffer, destinationRectangle, sourceRectangle, GraphicsUnit.Pixel);
+
+            using (var grSrc = Graphics.FromImage(screenBuffer))
             {
-                int left = 0, top = 0;
+                IntPtr hdcDest = IntPtr.Zero;
+                IntPtr hdcSrc = IntPtr.Zero;
+                IntPtr hBitmap = IntPtr.Zero;
+                IntPtr hOldObject = IntPtr.Zero;
 
-                if (width < display.Width)
-                    left = (display.Width - width) / 2;
-                else
-                    top = (display.Height - height) / 2;
+                try
+                {
+                    hdcDest = e.Graphics.GetHdc();
+                    hdcSrc = grSrc.GetHdc();
+                    hBitmap = screenBuffer.GetHbitmap();
 
-                formGraphics.Clear(Color.Black);
-                formGraphics.FillRectangle(myBrush, new Rectangle(left, top, width, height));
+                    hOldObject = Gdi32.SelectObject(hdcSrc, hBitmap);
+                    if (hOldObject == IntPtr.Zero)
+                        throw new Win32Exception();
+
+                    if (!Gdi32.StretchBlt(hdcDest, left, top, width, height,
+                                            hdcSrc, 0, 0, screenBuffer.Width, screenBuffer.Height,
+                                            Gdi32.TernaryRasterOperations.SRCCOPY))
+
+                        throw new Win32Exception();
+                }
+                finally
+                {
+                    if (hOldObject != IntPtr.Zero) Gdi32.SelectObject(hdcSrc, hOldObject);
+                    if (hBitmap != IntPtr.Zero) Gdi32.DeleteObject(hBitmap);
+                    if (hdcSrc != IntPtr.Zero) grSrc.ReleaseHdc(hdcSrc);
+                }
+            }
+
+            _activeScreenBuffer = 1 - _activeScreenBuffer;
+            _lastScreenBuffer = 1 - _lastScreenBuffer;
+        }
+
+        private void FadeImages()
+        {
+            using (var sourceGraphics = Graphics.FromImage(_screenBuffer[_lastScreenBuffer]))
+            using (var destinationGraphics = Graphics.FromImage(_screenBuffer[_activeScreenBuffer]))
+            {
+                IntPtr sourceDC = IntPtr.Zero;
+                IntPtr sourceBitmapHandle = IntPtr.Zero;
+                IntPtr oldSourceObjectHandle = IntPtr.Zero;
+
+                IntPtr destinationDC = IntPtr.Zero;
+                IntPtr destinationBitmapHandle = IntPtr.Zero;
+                IntPtr oldDestinationObjectHandle = IntPtr.Zero;
+
+                try
+                {
+                    sourceDC = sourceGraphics.GetHdc();
+                    sourceBitmapHandle = _screenBuffer[_lastScreenBuffer].GetHbitmap();
+
+                    oldSourceObjectHandle = Gdi32.SelectObject(sourceDC, sourceBitmapHandle);
+                    if (oldSourceObjectHandle == IntPtr.Zero)
+                        throw new Win32Exception();
+
+                    destinationDC = destinationGraphics.GetHdc();
+                    destinationBitmapHandle = _screenBuffer[_activeScreenBuffer].GetHbitmap();
+
+                    oldDestinationObjectHandle = Gdi32.SelectObject(destinationDC, destinationBitmapHandle);
+                    if (oldDestinationObjectHandle == IntPtr.Zero)
+                        throw new Win32Exception();
+
+                    var constantAlphaBlend = new Gdi32.BlendFunction
+                    {
+                        BlendOp = Gdi32.AC_SRC_OVER,
+                        SourceConstantAlpha = 0x99,
+                    };
+
+                    if (!Gdi32.AlphaBlend(destinationDC, 0, 0, _screenBuffer[_activeScreenBuffer].Width, _screenBuffer[_activeScreenBuffer].Height,
+                                            sourceDC, 0, 0, _screenBuffer[_lastScreenBuffer].Width, _screenBuffer[_lastScreenBuffer].Height,
+                                            constantAlphaBlend))
+                        throw new Win32Exception();
+                }
+                finally
+                {
+                    if (oldDestinationObjectHandle != IntPtr.Zero) Gdi32.SelectObject(destinationDC, oldDestinationObjectHandle);
+                    if (destinationBitmapHandle != IntPtr.Zero) Gdi32.DeleteObject(destinationBitmapHandle);
+                    if (destinationDC != IntPtr.Zero) destinationGraphics.ReleaseHdc(destinationDC);
+
+                    if (oldSourceObjectHandle != IntPtr.Zero) Gdi32.SelectObject(sourceDC, oldSourceObjectHandle);
+                    if (sourceBitmapHandle != IntPtr.Zero) Gdi32.DeleteObject(sourceBitmapHandle);
+                    if (sourceDC != IntPtr.Zero) sourceGraphics.ReleaseHdc(sourceDC);
+                }
             }
         }
     }

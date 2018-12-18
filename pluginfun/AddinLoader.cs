@@ -9,7 +9,7 @@ namespace pluginfun
     [Serializable]
     class AddinLoader : MarshalByRefObject
     {
-        internal static List<Type> Load<T>(string pluginPath)
+        internal static List<Type> Load<T>(string pluginPath, SearchOption searchOption = SearchOption.AllDirectories)
         {
             if (!typeof(T).IsInterface) throw new Exception($"{nameof(AddinLoader)}.{nameof(Load)} called with non-interface type: {typeof(T).Name}");
 
@@ -20,16 +20,14 @@ namespace pluginfun
             {
                 var addinLoader = appDomain.TypeObject;
 
-                addins.AddRange(addinLoader.GetImplementationsFromPath<T>(pluginPath, "*.dll", true));
+                addins.AddRange(addinLoader.GetImplementationsFromPath<T>(pluginPath, "*.dll", searchOption));
             }
 
             return addins;
         }
 
-        private List<Type> GetImplementationsFromPath<T>(string path, string searchPattern, bool recurseSubdirectories)
+        private List<Type> GetImplementationsFromPath<T>(string path, string searchPattern, SearchOption searchOption)
         {
-            SearchOption searchOption = recurseSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-
             return GetImplementationsFromAssemblies<T>(Directory.GetFiles(path, searchPattern, searchOption).Select(file => Assembly.LoadFrom(file))).ToList();
         }
 

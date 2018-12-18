@@ -44,6 +44,7 @@
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.limitFpsToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
             this.pauseWhenFocusLostToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
+            this.forceSquarePixelsToolStripMenuItem = new elb_utilities.Components.BindableToolStripMenuItem();
             this.pluginsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginOneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pluginTwoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -163,7 +164,8 @@
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.limitFpsToolStripMenuItem,
-            this.pauseWhenFocusLostToolStripMenuItem});
+            this.pauseWhenFocusLostToolStripMenuItem,
+            this.forceSquarePixelsToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "&Options";
@@ -182,6 +184,13 @@
             this.pauseWhenFocusLostToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
             this.pauseWhenFocusLostToolStripMenuItem.Text = "&Pause when focus lost";
             // 
+            // forceSquarePixelsToolStripMenuItem
+            // 
+            this.forceSquarePixelsToolStripMenuItem.CheckOnClick = true;
+            this.forceSquarePixelsToolStripMenuItem.Name = "forceSquarePixelsToolStripMenuItem";
+            this.forceSquarePixelsToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.forceSquarePixelsToolStripMenuItem.Text = "Force square pixels";
+            // 
             // pluginsToolStripMenuItem
             // 
             this.pluginsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -194,13 +203,13 @@
             // pluginOneToolStripMenuItem
             // 
             this.pluginOneToolStripMenuItem.Name = "pluginOneToolStripMenuItem";
-            this.pluginOneToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.pluginOneToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.pluginOneToolStripMenuItem.Text = "Plugin One";
             // 
             // pluginTwoToolStripMenuItem
             // 
             this.pluginTwoToolStripMenuItem.Name = "pluginTwoToolStripMenuItem";
-            this.pluginTwoToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.pluginTwoToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.pluginTwoToolStripMenuItem.Text = "Plugin Two";
             // 
             // helpToolStripMenuItem
@@ -292,6 +301,7 @@
         private System.Windows.Forms.ToolStripStatusLabel statusToolStripStatusLabel;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private DisplayControl displayControl;
+        private elb_utilities.Components.BindableToolStripMenuItem forceSquarePixelsToolStripMenuItem;
     }
 }
 

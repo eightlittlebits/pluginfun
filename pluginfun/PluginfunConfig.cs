@@ -10,6 +10,7 @@ namespace pluginfun
 
         public bool LimitFps { get; set; }
         public bool PauseOnLostFocus { get; set; }
+        public bool ForceSquarePixels { get; set; }
 
         [XmlArray]
         public List<string> RecentFiles { get; set; } = new List<string>();
