@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace elb_utilities
+namespace elb_utilities.WinForms
 {
     public class NotifyValue<T> : INotifyPropertyChanged
     {
