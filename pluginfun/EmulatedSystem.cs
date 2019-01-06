@@ -8,7 +8,7 @@ namespace pluginfun
         public string Name => "Emulated System";
 
         private SystemConfiguration _configuration;
-        public EmulatedSystemConfiguration Configuration
+        public IConfiguration Configuration
         {
             get => _configuration;
             set => _configuration = (SystemConfiguration)value;
@@ -16,7 +16,7 @@ namespace pluginfun
 
         public EmulatedSystem()
         {
-            _configuration = XmlConfiguration.Load<SystemConfiguration>();
+            _configuration = SystemConfiguration.Load();
         }
     }
 }

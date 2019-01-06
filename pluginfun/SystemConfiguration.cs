@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using elb_utilities.Configuration;
 using pluginfun.common;
 
 namespace pluginfun
@@ -9,7 +10,7 @@ namespace pluginfun
         PAL
     }
 
-    public sealed class SystemConfiguration : EmulatedSystemConfiguration
+    public sealed class SystemConfiguration : XmlConfiguration<SystemConfiguration>, IConfiguration
     { 
         protected override sealed string FileName => "systemconfig.xml";
 
@@ -24,7 +25,7 @@ namespace pluginfun
 
         public Region Region { get; set; }
 
-        public override EmulatedSystemConfiguration Copy()
+        public IConfiguration Copy()
         {
             return new SystemConfiguration()
             {

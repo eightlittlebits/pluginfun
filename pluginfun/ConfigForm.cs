@@ -12,7 +12,7 @@ namespace pluginfun
 {
     partial class ConfigForm : Form
     { 
-        public EmulatedSystemConfiguration Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         public ConfigForm(IEmulatedSystem emulatedSystem)
         {

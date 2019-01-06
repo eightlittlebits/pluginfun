@@ -4,6 +4,6 @@
     {
         string Name { get; }
 
-        EmulatedSystemConfiguration Configuration { get; set; }
+        IConfiguration Configuration { get; set; }
     }
 }

@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EmulatedSystemConfiguration.cs" />
+    <Compile Include="IConfiguration.cs" />
     <Compile Include="IEmulatedSystem.cs" />
     <Compile Include="IPluginFunAddin.cs" />
     <Compile Include="IPluginOne.cs" />

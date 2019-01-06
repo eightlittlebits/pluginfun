@@ -45,7 +45,7 @@ namespace pluginfun
 
             _stopwatchFrequency = Stopwatch.Frequency;
 
-            _config = XmlConfiguration.Load<PluginfunConfig>();
+            _config = PluginfunConfig.Load();
 
             _emulatedSystem = new EmulatedSystem();
 
